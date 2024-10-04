@@ -1,0 +1,18 @@
+// Declarar variables
+int x;
+int y;
+int z;
+
+
+// Inicializar variables
+x = 10;
+
+y = 10;
+
+// Calcular la suma
+z = x + y;
+
+
+
+
+
