@@ -156,8 +156,10 @@ void processLineWithSymbols(const string &line, DoublyLinkedList &tokenList,
       if (regex_match(symbol, signs_regex)) {
         tokenList.insert({"Simbolo", "-", lineNumber,
                           static_cast<int>(match.position()), match.str()});
+      } else {
+        tokenList.insert({"Simbolo", "-", lineNumber,
+                          static_cast<int>(match.position()), match.str()});
       }
-    
     }
 
     // Actualizar la posición para procesar el resto de la línea
