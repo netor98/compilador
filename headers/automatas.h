@@ -2,12 +2,65 @@
 #define AUTOMATAS_H
 
 #include <string>
+#include <unordered_map>
+
 bool automata_NR(std::string cadena);
 bool automata_NE(std::string cadena);
 bool automata_PALRES(std::string cadena);
 bool automata_IDEN(std::string cadena);
 
 
+void PreprocesarArchivo(std::string file);
+
+
+
+enum Keyword {
+  Var,
+  Const,
+  Verdadero,
+  Falso,
+  Si,
+  Sino,
+  Entonces,
+  Hacer,
+  Mientras,
+  Para,
+  Romper,
+  Caso,
+  Cambiar,
+  Booleano,
+  Flotante,
+  Entero,
+  Largo,
+  Corto,
+  Vacio,
+  Funcion,
+  Devolver
+};
+
+
+std::unordered_map<std::string, Keyword> keyword_map = {
+    {"var", Var},
+    {"const", Const},
+    {"verdadero", Verdadero},
+    {"falso", Falso},
+    {"si", Si},
+    {"sino", Sino},
+    {"entonces", Entonces},
+    {"hacer", Hacer},
+    {"mientras", Mientras},
+    {"para", Para},
+    {"romper", Romper},
+    {"caso", Caso},
+    {"cambiar", Cambiar},
+    {"booleano", Booleano},
+    {"flotante", Flotante},
+    {"entero", Entero},
+    {"largo", Largo},
+    {"corto", Corto},
+    {"vacio", Vacio},
+    {"funcion", Funcion},
+    {"devolver", Devolver}};
 #endif
 
 

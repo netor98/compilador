@@ -5,51 +5,6 @@
 
 using namespace std;
 
-enum Keyword {
-  Var,
-  Const,
-  Verdadero,
-  Falso,
-  Si,
-  Sino,
-  Entonces,
-  Hacer,
-  Mientras,
-  Romper,
-  Caso,
-  Cambiar,
-  Booleano,
-  Flotante,
-  Entero,
-  Largo,
-  Corto,
-  Vacío,
-  Función,
-  Devolver
-};
-
-std::unordered_map<std::string, Keyword> keyword_map = {
-    {"var", Var},
-    {"const", Const},
-    {"verdadero", Verdadero},
-    {"falso", Falso},
-    {"si", Si},
-    {"sino", Sino},
-    {"entonces", Entonces},
-    {"hacer", Hacer},
-    {"mientras", Mientras},
-    {"romper", Romper},
-    {"caso", Caso},
-    {"cambiar", Cambiar},
-    {"booleano", Booleano},
-    {"flotante", Flotante},
-    {"entero", Entero},
-    {"largo", Largo},
-    {"corto", Corto},
-    {"vacío", Vacío},
-    {"función", Función},
-    {"devolver", Devolver}};
-
 bool automata_NR(std::string input) {
 
   enum State {
@@ -64,10 +19,10 @@ bool automata_NR(std::string input) {
 
   State state = START;
   int i = 0;
-  cout << "Estado" << "-" << "Caracter" << endl;
+  // cout << "Estado" << "-" << "Caracter" << endl;
   while (i < input.size()) {
     char currentChar = input[i];
-    cout << state << "  ---  " << currentChar << endl;
+    // cout << state << "  ---  " << currentChar << endl;
     // cout << currentChar << endl;
     switch (state) {
     case START:
@@ -134,7 +89,7 @@ bool automata_NR(std::string input) {
     i++;
   }
 
-  cout << input << " ";
+  // cout << input << " ";
   return state == FRACTION;
 }
 
@@ -148,12 +103,13 @@ bool automata_NE(std::string input) {
     ERROR
   };
 
+  
   State state = START;
   int i = 0;
-  cout << "Estado" << "-" << "Caracter" << endl;
+  // cout << "Estado" << "-" << "Caracter" << endl;
   while (i < input.size()) {
     char currentChar = input[i];
-    cout << state << "  ---  " << currentChar << endl;
+    // cout << state << "  ---  " << currentChar << endl;
     // cout << currentChar << endl;
     switch (state) {
     case START:
@@ -198,7 +154,7 @@ bool automata_NE(std::string input) {
     i++;
   }
 
-  cout << input << " ";
+  // cout << input << " ";
   return state == INTEGER;
 }
 
@@ -212,10 +168,10 @@ bool automata_PALRES(std::string input) {
 
   State state = START;
   int i = 0;
-  cout << "Estado" << "-" << "Caracter" << endl;
+  // cout << "Estado" << "-" << "Caracter" << endl;
   while (i < input.size()) {
     char currentChar = input[i];
-    cout << state << "  ---  " << currentChar << endl;
+    // cout << state << "  ---  " << currentChar << endl;
     // cout << currentChar << endl;
     switch (state) {
     case START:
@@ -240,7 +196,7 @@ bool automata_PALRES(std::string input) {
     i++;
   }
 
-  cout << input << " ";
+  // cout << input << " ";
   if (keyword_map.find(input) != keyword_map.end()) {
     return true;
   } else
@@ -257,10 +213,10 @@ bool automata_IDEN(std::string input) {
 
   State state = START;
   int i = 0;
-  cout << "Estado" << "-" << "Caracter" << endl;
+  // cout << "Estado" << "-" << "Caracter" << endl;
   while (i < input.size()) {
     char currentChar = input[i];
-    cout << state << "  ---  " << currentChar << endl;
+    // cout << state << "  ---  " << currentChar << endl;
     // cout << currentChar << endl;
     switch (state) {
     case START:
@@ -287,9 +243,9 @@ bool automata_IDEN(std::string input) {
     i++;
   }
 
-  cout << input << " ";
+  // cout << input << " ";
   if (keyword_map.find(input) != keyword_map.end()) {
-    cout << "Es palabra reservada" << endl;
+    // cout << "Es palabra reservada" << endl;
     return false;
   }
   return state == ALPHANUMERIC;
