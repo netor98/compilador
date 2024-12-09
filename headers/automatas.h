@@ -31,6 +31,7 @@ enum Keyword {
   Booleano,
   Flotante,
   Entero,
+  Cadena,
   Largo,
   Corto,
   Vacio,
@@ -56,12 +57,10 @@ std::unordered_map<std::string, Keyword> keyword_map = {
     {"booleano", Booleano},
     {"flotante", Flotante},
     {"entero", Entero},
+    {"cadena", Cadena},
     {"largo", Largo},
     {"corto", Corto},
     {"vacio", Vacio},
     {"funcion", Funcion},
     {"devolver", Devolver}};
 #endif
-
-
-

@@ -113,6 +113,9 @@ void insertarNodo(const string &line, DoublyLinkedList &tokenList,
   else if (automata_PALRES(line)) {
     newToken = {"PalRes", "-", lineNumber, position, line};
     // tokenList.insert(Token{"palRes", 0, lineNumber, 0, line});
+  } else {
+      cout << "Token invalido: " << line << endl;
+      return;
   }
   // cout << "Inserting Token: "
   //      << "Type: " << newToken.tipo << ", "
@@ -122,7 +125,7 @@ void insertarNodo(const string &line, DoublyLinkedList &tokenList,
   //      << "Lexema: " << newToken.lexema << endl;
 
   tokenList.insert(newToken);
-  
+
 }
 
 void processLineWithSymbols(const string &line, DoublyLinkedList &tokenList,
@@ -200,7 +203,7 @@ int main() {
   PreprocesarArchivo("input.txt");
   string filename = R"(./output.txt)"; // Nombre del
                                        // archivo de
-  
+
   DoublyLinkedList tokenList;
   processFile(filename, tokenList);
 

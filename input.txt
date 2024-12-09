@@ -1,48 +1,4 @@
-// Declarar variables
-
-// Inicializar variables
-x=10;
-
-y=10;
-
-// Calcular la suma
-z=x + y;
-
-
-
-
-
-entero x;
-p=12.120000;
-si (y > 5) {
-  z = 20;
-  cambiar(x) {
-    
-
-
-
-    caso 1:
-      romper;
-    caso 2:
-      devolver z;
-  }
-}
-
-funcion entero f(entero x, entero y) {
-  devolver x + y;
-}
-
-su+m=10;
-para (entero i = 0; i < 10; i++) {
-  si (i == 5) {
-    romper;
-  }
-  imprimir(i);
-}
-
-
-
-
+cadena Cadena 10 CADENA + * / - cADENA
 
 
 
