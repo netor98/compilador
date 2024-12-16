@@ -1,5 +1,16 @@
-cadena Cadena 10 CADENA + * / - cADENA
+si (x < y) entonces {
+  si (y < 100) entonces {
+    x = x + y;
+  } sino {
+    y = x - 1;
+  }
+} sino {
+  y = 0;
+}
 
 
+si (x < y entonces {
+  x = x + 1;
+}
 
 

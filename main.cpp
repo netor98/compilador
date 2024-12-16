@@ -1,5 +1,6 @@
 // Archivo: main.cpp
-
+#include "./AnalizadorSintactico/Analizador.h"
+#include "./AnalizadorSintactico/AstNodo.h"
 #include "./headers/automatas.h"
 #include "./automatas.cpp"
 #include "./prePreocesarArchivo.cpp"
@@ -21,13 +22,13 @@ enum tipoToken {
   id
 };
 
-struct Token {
-  string tipo;
-  string valor;
-  int linea;
-  int col;
-  string lexema;
-};
+// struct Token {
+//   string tipo;
+//   string valor;
+//   int linea;
+//   int col;
+//   string lexema;
+// };
 
 // Nodo de la lista doblemente enlazada
 struct Node {
@@ -79,6 +80,10 @@ public:
     }
     tp.PrintFooter();
   }
+
+  Node* getHead() const {
+        return head;
+    }
 
 private:
   Node *head;
@@ -199,6 +204,49 @@ void processFile(const string &filename, DoublyLinkedList &tokenList) {
   file.close();
 }
 
+
+
+std::vector<Token> convertToVector(const DoublyLinkedList& list) {
+    std::vector<Token> tokens; // Vector que contendrá los tokens
+    Node* current = list.getHead(); // Obtiene el primer nodo de la lista
+
+    while (current != nullptr) {
+        tokens.push_back(current->token); // Copia el token al vector
+        current = current->sig;          // Avanza al siguiente nodo
+    }
+
+    return tokens;
+}
+
+
+
+
+
+void printAST(ASTNodo* node, int depth = 0) {
+    if (!node) return;
+
+    for (int i = 0; i < depth; i++) cout << "  ";
+    cout << node->tipo<< " (" << node->valor<< ") [Linea: " << node->linea<< ", Columna: " << node->columna + 1 << "]" << endl;
+
+    for (ASTNodo* child : node->hijos) {
+        printAST(child, depth + 1);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 int main() {
   PreprocesarArchivo("input.txt");
   string filename = R"(./output.txt)"; // Nombre del
@@ -207,8 +255,20 @@ int main() {
   DoublyLinkedList tokenList;
   processFile(filename, tokenList);
 
-  // Mostrar los tokens encontrados
   tokenList.display();
 
+ std::vector<Token> tokens = convertToVector(tokenList);
+
+  Analizador analizador(tokens);
+  cout << "Iniciando el análisis sintáctico..." << endl;
+ ASTNodo* ast = analizador.parse();
+  printAST(ast);
   return 0;
 }
+
+
+
+
+
+
+
