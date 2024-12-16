@@ -1,1 +1,12 @@
-cadena Cadena 10 CADENA + * / - cADENA
+var x = 10;
+const y = 20;
+si (x < y) entonces {
+mientras (x < 100) {
+x = x + 10;
+}
+} sino {
+devolver x;
+}
+funcion sumar(a, b) {
+devolver a + b;
+}

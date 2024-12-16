@@ -8,6 +8,8 @@
 #include <iostream>
 #include <regex>
 #include <string>
+#include "parser.h"
+#include "token.h" // Incluye la definición de Token
 //ola montalvo
 using namespace std;
 
@@ -21,13 +23,6 @@ enum tipoToken {
   id
 };
 
-struct Token {
-  string tipo;
-  string valor;
-  int linea;
-  int col;
-  string lexema;
-};
 
 // Nodo de la lista doblemente enlazada
 struct Node {
@@ -80,7 +75,7 @@ public:
     tp.PrintFooter();
   }
 
-private:
+public:
   Node *head;
   Node *tail;
 };
@@ -200,15 +195,29 @@ void processFile(const string &filename, DoublyLinkedList &tokenList) {
 }
 
 int main() {
-  PreprocesarArchivo("input.txt");
-  string filename = R"(./output.txt)"; // Nombre del
-                                       // archivo de
+    PreprocesarArchivo("input.txt");
+    string filename = R"(./output.txt)";
 
-  DoublyLinkedList tokenList;
-  processFile(filename, tokenList);
+    // Crear lista de tokens
+    DoublyLinkedList tokenList;
+    processFile(filename, tokenList);
 
-  // Mostrar los tokens encontrados
-  tokenList.display();
+    // Mostrar los tokens encontrados
+    tokenList.display();
 
-  return 0;
+    // Convertir lista enlazada a vector de tokens
+    vector<Token> tokens;
+    Node* current = tokenList.head;
+    while (current) {
+        tokens.push_back(current->token);
+        current = current->sig;
+    }
+
+    // Crear e inicializar el parser
+    Parser parser(tokens);
+    auto ast = parser.parse();
+
+    cout << "Analisis sintactico completado. Arbol generado." << endl;
+
+    return 0;
 }
