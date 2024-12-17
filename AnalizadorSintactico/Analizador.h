@@ -26,6 +26,7 @@ private:
   ASTNodo *parseSi();
   ASTNodo *parseMientras();
   ASTNodo *parseFuncion();
+  ASTNodo *parsePara();
   ASTNodo *parseDevolver();
   ASTNodo *parsePrograma();
 

@@ -1,16 +1,33 @@
-si (x < y) entonces {
-  si (y < 100) entonces {
-    x = x + y;
-  } sino {
-    y = x - 1;
-  }
-} sino {
-  y = 0;
+
+var suma = 0;
+var contador = 0;
+
+para (var i = 0; i < 5; i = i + 1) {
+    para (var j = 0; j < 3; j = j + 1) {
+        si (i == j) entonces {
+            suma = suma + 1;
+            si (i == 1) entonces {
+                suma = suma + 1;
+                }
+        } sino {
+            suma = suma + 2;
+        }
+        contador = contador + 1;
+    }
 }
 
 
-si (x < y entonces {
-  x = x + 1;
+funcion sumar(a, b) {
+    devolver a + b;
 }
 
+funcion multiplicar(x, y) {
+    devolver x * y;
+}
+
+var resultado = 0;
+
+para (var i = 1; i <= 10; i = i + 1) {
+    resultado = resultado + 1
+}
 

@@ -67,94 +67,108 @@ ASTNodo *Analizador::parsePrograma() {
 ASTNodo *Analizador::parseInstruccion() {
   Token current = TokenActual();
 
-  if (current.lexema == "si")
-    return parseSi();
-  if (current.lexema == "mientras")
-    return parseMientras();
-  if (current.lexema == "devolver")
-    return parseDevolver(); // Implementar parseFuncion
-  if (current.lexema == "funcion")
-    return parseFuncion(); // Implementar parseFuncion
-  if (current.tipo == "PalRes")
-    return parseDeclaracion();
-  if (current.tipo == "id")
-    return parseAsignacion();
+  // Ignorar la llave de cierre '}' sin generar error
+  if (current.lexema == "}") {
+    return nullptr; // Finaliza el bloque actual
+  }
 
-  reportarError("Instrucción desconocida", current.linea, current.col);
-  return nullptr;
+  ASTNodo *instruccion = nullptr;
+
+  if (current.lexema == "si") {
+    instruccion = parseSi();
+  } else if (current.lexema == "mientras") {
+    instruccion = parseMientras();
+  } else if (current.lexema == "para") {
+    instruccion = parsePara();
+  } else if (current.lexema == "devolver") {
+    instruccion = parseDevolver();
+  } else if (current.lexema == "funcion") {
+    instruccion = parseFuncion();
+  } else if (current.tipo == "PalRes") {
+    instruccion = parseDeclaracion();
+  } else if (current.tipo == "id") {
+    instruccion = parseAsignacion();
+  } else {
+    reportarError("Instrucción desconocida", current.linea, current.col);
+    return nullptr;
+  }
+
+  // Consumir punto y coma ';' después de una instrucción válida
+  if (TokenActual().lexema == ";") {
+    avanzar(); // Consumir ';'
+  }
+
+  return instruccion;
 }
 
 ASTNodo *Analizador::parseDeclaracion() {
   Token current = TokenActual();
-  // Verificar si el token es una palabra reservada (entero)
-  cout << current.lexema << endl;
+
+  // Verificar si el token es una palabra reservada válida
   if (current.tipo == "PalRes" && esValidoTipo(current.lexema)) {
-    std::string tipo = current.lexema; // Guardar "tipo"
-    avanzar();                         // Consumir "tipo"
+    std::string tipo = current.lexema;
+    avanzar(); // Consumir el tipo
 
     // Verificar si el siguiente token es un identificador
     Token identificador = TokenActual();
     if (identificador.tipo != "id") {
-      reportarError("Se esperaba un identificador", identificador.linea,
-                    identificador.col);
+      reportarError("Se esperaba un identificador en la declaración",
+                    identificador.linea, identificador.col);
       return nullptr;
     }
-    avanzar(); // Consumir identificador
+    avanzar(); // Consumir el identificador
 
     ASTNodo *nodoDeclaracion =
         new ASTNodo("declaracion", tipo + " " + identificador.lexema,
                     current.linea, current.col);
 
     // Verificar si hay una asignación opcional
-    if (TokenActual().tipo == "Simbolo" && TokenActual().lexema == "=") {
-      avanzar(); // Consumir "="
-
-      // Procesar la expresión después del "="
+    if (TokenActual().lexema == "=") {
+      avanzar(); // Consumir '='
       ASTNodo *expresion = parseExpresion();
       if (!expresion) {
         reportarError("Expresión inválida en la declaración",
                       TokenActual().linea, TokenActual().col);
         return nullptr;
       }
-
-      // Agregar la expresión como hijo del nodo declaración
       nodoDeclaracion->hijos.push_back(expresion);
     }
 
-    // Verificar el punto y coma ";"
-    if (TokenActual().tipo != "Simbolo" || TokenActual().lexema != ";") {
+    // Verificar y consumir explícitamente el punto y coma ';'
+    if (TokenActual().lexema != ";") {
       reportarError("Se esperaba ';' al final de la declaración",
                     TokenActual().linea, TokenActual().col);
       return nullptr;
     }
-    avanzar(); // Consumir ";"
+    avanzar(); // Consumir ';'
 
     return nodoDeclaracion;
   }
 
-  reportarError("Declaración inválida", current.linea, current.col);
+  reportarError("Tipo de declaración inválida", current.linea, current.col);
   return nullptr;
 }
 
 ASTNodo *Analizador::parseAsignacion() {
   Token identificador = TokenActual();
-  // Identificador
+
+  // Verificar que el token sea un identificador
   if (identificador.tipo != "id") {
-    reportarError("Se esperaba un identificador", identificador.linea,
-                  identificador.col);
+    reportarError("Se esperaba un identificador en la asignación",
+                  identificador.linea, identificador.col);
     return nullptr;
   }
-  avanzar();
+  avanzar(); // Consumir el identificador
 
-  // Operador "="
-  Token igual = TokenActual();
-  if (igual.tipo != "Simbolo" || igual.lexema != "=") {
-    reportarError("Se esperaba '='", igual.linea, igual.col);
+  // Verificar el símbolo '='
+  if (TokenActual().lexema != "=") {
+    reportarError("Se esperaba '=' en la asignación", TokenActual().linea,
+                  TokenActual().col);
     return nullptr;
   }
-  avanzar();
+  avanzar(); // Consumir '='
 
-  // Expresión
+  // Procesar la expresión después del '='
   ASTNodo *expresion = parseExpresion();
   if (!expresion) {
     reportarError("Expresión inválida en la asignación", TokenActual().linea,
@@ -162,19 +176,11 @@ ASTNodo *Analizador::parseAsignacion() {
     return nullptr;
   }
 
-  // Punto y coma
-  Token puntoComa = TokenActual();
-  if (puntoComa.tipo != "Simbolo" || puntoComa.lexema != ";") {
-    reportarError("Se esperaba ';'", puntoComa.linea, puntoComa.col);
-    return nullptr;
-  }
-  avanzar();
-
-  // Crear nodo del AST
+  // Crear y retornar el nodo de asignación (sin consumir el ';')
   ASTNodo *nodoAsignacion = new ASTNodo("asignacion", identificador.lexema,
                                         identificador.linea, identificador.col);
   nodoAsignacion->hijos.push_back(expresion);
-  return nodoAsignacion;
+
   return nodoAsignacion;
 }
 
@@ -257,97 +263,108 @@ ASTNodo *Analizador::parseFactor() {
 }
 
 ASTNodo *Analizador::parseSi() {
- Token current = TokenActual();
+  Token current = TokenActual();
 
-    // Verificar la palabra reservada 'si'
-    if (current.lexema != "si") {
-        reportarError("Se esperaba la palabra reservada 'si'", current.linea, current.col);
-        return nullptr;
-    }
-    avanzar(); // Consumir 'si'
+  // Verificar la palabra reservada 'si'
+  if (current.lexema != "si") {
+    reportarError("Se esperaba la palabra reservada 'si'", current.linea,
+                  current.col);
+    return nullptr;
+  }
+  avanzar(); // Consumir 'si'
 
-    // Verificar el paréntesis de apertura '('
-    if (TokenActual().lexema != "(") {
-        reportarError("Se esperaba '(' después de 'si'", TokenActual().linea, TokenActual().col);
-        return nullptr;
-    }
-    avanzar(); // Consumir '('
+  // Verificar el paréntesis de apertura '('
+  if (TokenActual().lexema != "(") {
+    reportarError("Se esperaba '(' después de 'si'", TokenActual().linea,
+                  TokenActual().col);
+    return nullptr;
+  }
+  avanzar(); // Consumir '('
 
-    // Parsear la condición dentro de los paréntesis
-    ASTNodo* condicion = parseExpresion();
-    if (!condicion) {
-        reportarError("Condición inválida en 'si'", TokenActual().linea, TokenActual().col);
-        return nullptr;
-    }
+  // Parsear la condición dentro de los paréntesis
+  ASTNodo *condicion = parseExpresion();
+  if (!condicion) {
+    reportarError("Condición inválida en 'si'", TokenActual().linea,
+                  TokenActual().col);
+    return nullptr;
+  }
 
-    // Verificar el paréntesis de cierre ')'
-    if (TokenActual().lexema != ")") {
-        reportarError("Se esperaba ')' después de la condición", TokenActual().linea, TokenActual().col);
-        return nullptr;
-    }
-    avanzar(); // Consumir ')'
+  // Verificar el paréntesis de cierre ')'
+  if (TokenActual().lexema != ")") {
+    reportarError("Se esperaba ')' después de la condición",
+                  TokenActual().linea, TokenActual().col);
+    return nullptr;
+  }
+  avanzar(); // Consumir ')'
 
-    // Verificar la palabra reservada 'entonces'
-    if (TokenActual().lexema != "entonces") {
-        reportarError("Se esperaba 'entonces' después de 'si'", TokenActual().linea, TokenActual().col);
-        return nullptr;
-    }
-    avanzar(); // Consumir 'entonces'
+  // Verificar la palabra reservada 'entonces'
+  if (TokenActual().lexema != "entonces") {
+    reportarError("Se esperaba 'entonces' después de 'si'", TokenActual().linea,
+                  TokenActual().col);
+    return nullptr;
+  }
+  avanzar(); // Consumir 'entonces'
+
+  // Verificar la llave de apertura '{'
+  if (TokenActual().lexema != "{") {
+    reportarError("Se esperaba '{' para el bloque del 'si'",
+                  TokenActual().linea, TokenActual().col);
+    return nullptr;
+  }
+  avanzar(); // Consumir '{'
+
+  // Crear nodo para el bloque 'si'
+  ASTNodo *nodoSi = new ASTNodo("si", "", current.linea, current.col);
+  nodoSi->hijos.push_back(condicion); // Agregar la condición como hijo
+
+  // Procesar instrucciones dentro del bloque 'si'
+  while (TokenActual().lexema != "}" && TokenActual().tipo != "EOF") {
+    ASTNodo *instruccion = parseInstruccion();
+    if (instruccion)
+      nodoSi->hijos.push_back(instruccion);
+  }
+
+  // Verificar la llave de cierre '}'
+  if (TokenActual().lexema != "}") {
+    reportarError("Se esperaba '}' para cerrar el bloque del 'si'",
+                  TokenActual().linea, TokenActual().col);
+    return nullptr;
+  }
+  avanzar(); // Consumir '}'
+
+  // Manejar el bloque 'sino' opcional
+  if (TokenActual().lexema == "sino") {
+    avanzar(); // Consumir 'sino'
 
     // Verificar la llave de apertura '{'
     if (TokenActual().lexema != "{") {
-        reportarError("Se esperaba '{' para el bloque del 'si'", TokenActual().linea, TokenActual().col);
-        return nullptr;
+      reportarError("Se esperaba '{' para el bloque del 'sino'",
+                    TokenActual().linea, TokenActual().col);
+      return nullptr;
     }
     avanzar(); // Consumir '{'
 
-    // Crear nodo para el bloque 'si'
-    ASTNodo* nodoSi = new ASTNodo("si", "", current.linea, current.col);
-    nodoSi->hijos.push_back(condicion); // Agregar la condición como hijo
-
-    // Procesar instrucciones dentro del bloque 'si'
+    ASTNodo *nodoSino =
+        new ASTNodo("sino", "", TokenActual().linea, TokenActual().col);
     while (TokenActual().lexema != "}" && TokenActual().tipo != "EOF") {
-        ASTNodo* instruccion = parseInstruccion();
-        if (instruccion) nodoSi->hijos.push_back(instruccion);
+      ASTNodo *instruccion = parseInstruccion();
+      if (instruccion)
+        nodoSino->hijos.push_back(instruccion);
     }
 
     // Verificar la llave de cierre '}'
     if (TokenActual().lexema != "}") {
-        reportarError("Se esperaba '}' para cerrar el bloque del 'si'", TokenActual().linea, TokenActual().col);
-        return nullptr;
+      reportarError("Se esperaba '}' para cerrar el bloque del 'sino'",
+                    TokenActual().linea, TokenActual().col);
+      return nullptr;
     }
     avanzar(); // Consumir '}'
 
-    // Manejar el bloque 'sino' opcional
-    if (TokenActual().lexema == "sino") {
-        avanzar(); // Consumir 'sino'
+    nodoSi->hijos.push_back(nodoSino);
+  }
 
-        // Verificar la llave de apertura '{'
-        if (TokenActual().lexema != "{") {
-            reportarError("Se esperaba '{' para el bloque del 'sino'", TokenActual().linea, TokenActual().col);
-            return nullptr;
-        }
-        avanzar(); // Consumir '{'
-
-        ASTNodo* nodoSino = new ASTNodo("sino", "", TokenActual().linea, TokenActual().col);
-        while (TokenActual().lexema != "}" && TokenActual().tipo != "EOF") {
-            ASTNodo* instruccion = parseInstruccion();
-            if (instruccion) nodoSino->hijos.push_back(instruccion);
-        }
-
-        // Verificar la llave de cierre '}'
-        if (TokenActual().lexema != "}") {
-            reportarError("Se esperaba '}' para cerrar el bloque del 'sino'", TokenActual().linea, TokenActual().col);
-            return nullptr;
-        }
-        avanzar(); // Consumir '}'
-
-        nodoSi->hijos.push_back(nodoSino);
-    }
-
-    return nodoSi;
+  return nodoSi;
 }
-
 
 ASTNodo *Analizador::parseMientras() {
   Token current = TokenActual();
@@ -536,4 +553,108 @@ ASTNodo *Analizador::parseDevolver() {
       new ASTNodo("devolver", "", current.linea, current.col);
   nodoDevolver->hijos.push_back(expresion);
   return nodoDevolver;
+}
+
+ASTNodo *Analizador::parsePara() {
+  Token current = TokenActual();
+
+  // Verificar la palabra reservada 'para'
+  if (current.lexema != "para") {
+    reportarError("Se esperaba la palabra reservada 'para'", current.linea,
+                  current.col);
+    return nullptr;
+  }
+  avanzar(); // Consumir 'para'
+
+  // Verificar el paréntesis de apertura '('
+  if (TokenActual().lexema != "(") {
+    reportarError("Se esperaba '(' después de 'para'", TokenActual().linea,
+                  TokenActual().col);
+    return nullptr;
+  }
+  avanzar(); // Consumir '('
+
+  // Procesar la inicialización
+  ASTNodo *inicializacion = nullptr;
+  if (TokenActual().tipo == "PalRes") { // Declaración
+    inicializacion = parseDeclaracion();
+  } else if (TokenActual().tipo == "id") { // Asignación
+    inicializacion = parseAsignacion();
+  } else {
+    reportarError("Inicialización inválida en 'para'", TokenActual().linea,
+                  TokenActual().col);
+    return nullptr;
+  }
+
+  // Procesar la condición
+  ASTNodo *condicion = parseExpresion();
+  if (!condicion) {
+    reportarError("Condición inválida en 'para'", TokenActual().linea,
+                  TokenActual().col);
+    return nullptr;
+  }
+
+  // Consumir explícitamente el ';' después de la condición
+  if (TokenActual().lexema != ";") {
+    reportarError("Se esperaba ';' después de la condición en 'para'",
+                  TokenActual().linea, TokenActual().col);
+    return nullptr;
+  }
+  avanzar(); // Consumir ';'
+
+  // Procesar la actualización
+  ASTNodo *actualizacion = parseAsignacion();
+  if (!actualizacion) {
+    reportarError("Actualización inválida en 'para'", TokenActual().linea,
+                  TokenActual().col);
+    return nullptr;
+  }
+
+  // Verificar paréntesis de cierre ')'
+  if (TokenActual().lexema != ")") {
+    reportarError("Se esperaba ')' después de la actualización en 'para'",
+                  TokenActual().linea, TokenActual().col);
+    return nullptr;
+  }
+  avanzar(); // Consumir ')'
+
+  // Verificar la llave de apertura '{'
+  if (TokenActual().lexema != "{") {
+    reportarError("Se esperaba '{' para el cuerpo del 'para'",
+                  TokenActual().linea, TokenActual().col);
+    return nullptr;
+  }
+  avanzar(); // Consumir '{'
+
+  // Crear nodo 'para'
+  ASTNodo *nodoPara = new ASTNodo("para", "", current.linea, current.col);
+  nodoPara->hijos.push_back(inicializacion);
+  nodoPara->hijos.push_back(condicion);
+  nodoPara->hijos.push_back(actualizacion);
+
+  // Procesar el cuerpo del ciclo
+  while (TokenActual().lexema != "}" && TokenActual().tipo != "EOF") {
+    ASTNodo *instruccion = parseInstruccion();
+    if (instruccion) {
+      nodoPara->hijos.push_back(instruccion);
+    } else {
+      if (TokenActual().lexema == "}") {
+        break; // Fin del bloque, salir del bucle
+      } else {
+        reportarError("Instrucción inválida dentro del cuerpo de 'para'",
+                      TokenActual().linea, TokenActual().col);
+        avanzar(); // Avanzar para evitar bucles infinitos
+      }
+    }
+  }
+
+  // Verificar la llave de cierre '}'
+  if (TokenActual().lexema != "}") {
+    reportarError("Se esperaba '}' para cerrar el cuerpo del 'para'",
+                  TokenActual().linea, TokenActual().col);
+    return nullptr;
+  }
+  avanzar(); // Consumir '}'
+
+  return nodoPara;
 }
