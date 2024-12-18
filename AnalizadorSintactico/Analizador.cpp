@@ -45,7 +45,7 @@ void Analizador::avanzar() {
 
 // Reporta un error sintáctico
 void Analizador::reportarError(const std::string &mensaje, int linea, int col) {
-  std::cerr << "Error sintáctico en línea " << linea << ", col " << col << ": "
+  std::cerr << "Error sintactico en linea " << linea << ", col " << col << ": "
             << mensaje << std::endl;
 }
 
@@ -367,58 +367,77 @@ ASTNodo *Analizador::parseSi() {
 }
 
 ASTNodo *Analizador::parseMientras() {
-  Token current = TokenActual();
-  if (current.lexema != "mientras")
-    return nullptr;
+    Token current = TokenActual();
 
-  avanzar(); // Consumir "mientras"
+    // Verificar la palabra reservada 'mientras'
+    if (current.lexema != "mientras") {
+        reportarError("Se esperaba la palabra reservada 'mientras'", current.linea, current.col);
+        return nullptr;
+    }
+    avanzar(); // Consumir 'mientras'
 
-  if (TokenActual().lexema != "(") {
-    reportarError("Se esperaba '(' después de 'mientras'", TokenActual().linea,
-                  TokenActual().col);
-    return nullptr;
-  }
-  avanzar(); // Consumir "("
+    // Verificar el paréntesis de apertura '('
+    if (TokenActual().lexema != "(") {
+        reportarError("Se esperaba '(' despues de 'mientras'", TokenActual().linea, TokenActual().col);
+        return nullptr;
+    }
+    avanzar(); // Consumir '('
 
-  ASTNodo *condicion = parseExpresion(); // Procesar la condición
-  if (!condicion) {
-    reportarError("Condicion invalida en 'mientras'", TokenActual().linea,
-                  TokenActual().col);
-    return nullptr;
-  }
+    // Procesar la condición
+    ASTNodo *condicion = parseExpresion();
+    if (!condicion) {
+        reportarError("Condicion invalida en 'mientras'", TokenActual().linea, TokenActual().col);
+        return nullptr;
+    }
 
-  if (TokenActual().lexema != ")") {
-    reportarError("Se esperaba ')' después de la condicion",
-                  TokenActual().linea, TokenActual().col);
-    return nullptr;
-  }
-  avanzar(); // Consumir ")"
+    // Verificar el paréntesis de cierre ')'
+    if (TokenActual().lexema != ")") {
+        reportarError("Se esperaba ')' despues de la condicion", TokenActual().linea, TokenActual().col);
+        return nullptr;
+    }
+    avanzar(); // Consumir ')'
 
-  if (TokenActual().lexema != "{") {
-    reportarError("Se esperaba '{' para el bloque del 'mientras'",
-                  TokenActual().linea, TokenActual().col);
-    return nullptr;
-  }
-  avanzar(); // Consumir "{"
+    // Verificar la llave de apertura '{'
+    if (TokenActual().lexema != "{") {
+        reportarError("Se esperaba '{' para el cuerpo del 'mientras'", TokenActual().linea, TokenActual().col);
+        return nullptr;
+    }
+    avanzar(); // Consumir '{'
 
-  ASTNodo *nodoMientras =
-      new ASTNodo("mientras", "", current.linea, current.col);
-  while (TokenActual().lexema != "}" && TokenActual().tipo != "EOF") {
-    ASTNodo *instruccion = parseInstruccion();
-    if (instruccion)
-      nodoMientras->hijos.push_back(instruccion);
-  }
+    // Crear el nodo 'mientras'
+    ASTNodo *nodoMientras = new ASTNodo("mientras", "", current.linea, current.col);
+    nodoMientras->hijos.push_back(condicion); // Agregar la condición como hijo
 
-  if (TokenActual().lexema != "}") {
-    reportarError("Se esperaba '}' para cerrar el bloque del 'mientras'",
-                  TokenActual().linea, TokenActual().col);
-    return nullptr;
-  }
-  avanzar(); // Consumir "}"
+    // Procesar las instrucciones dentro del cuerpo del 'mientras'
+    while (TokenActual().lexema != "}" && TokenActual().tipo != "EOF") {
+        ASTNodo *instruccion = parseInstruccion();
 
-  nodoMientras->hijos.insert(nodoMientras->hijos.begin(), condicion);
-  return nodoMientras;
+        if (instruccion) {
+            nodoMientras->hijos.push_back(instruccion);
+
+            // Consumir el punto y coma ';' después de la instrucción
+            if (TokenActual().lexema == ";") {
+                avanzar(); // Consumir ';'
+            } else {
+                reportarError("Se esperaba ';' despues de la instruccion", TokenActual().linea, TokenActual().col);
+                return nullptr;
+            }
+        } else {
+            reportarError("Instruccion invalida dentro del cuerpo de 'mientras'", TokenActual().linea, TokenActual().col);
+            avanzar(); // Evitar bucles infinitos
+        }
+    }
+
+    // Verificar la llave de cierre '}'
+    if (TokenActual().lexema != "}") {
+        reportarError("Se esperaba '}' para cerrar el cuerpo del 'mientras'", TokenActual().linea, TokenActual().col);
+        return nullptr;
+    }
+    avanzar(); // Consumir '}'
+
+    return nodoMientras;
 }
+
 
 ASTNodo *Analizador::parseFuncion() {
   Token current = TokenActual();

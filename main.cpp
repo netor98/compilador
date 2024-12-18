@@ -260,7 +260,7 @@ int main() {
  std::vector<Token> tokens = convertToVector(tokenList);
 
   Analizador analizador(tokens);
-  cout << "Iniciando el análisis sintáctico..." << endl;
+  cout << "Iniciando el analisis sintactico..." << endl;
  ASTNodo* ast = analizador.parse();
   printAST(ast);
   return 0;
