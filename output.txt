@@ -1,1 +1,4 @@
-Escribir;
+Escribir(x)
+Leer(x);
+Sumar(x, y);
+escribir = 0;

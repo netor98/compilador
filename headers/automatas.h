@@ -9,10 +9,7 @@ bool automata_NE(std::string cadena);
 bool automata_PALRES(std::string cadena);
 bool automata_IDEN(std::string cadena);
 
-
 void PreprocesarArchivo(std::string file);
-
-
 
 enum Keyword {
   Var,
@@ -36,9 +33,10 @@ enum Keyword {
   Corto,
   Vacio,
   Funcion,
-  Devolver
+  Devolver,
+  Escribir,
+  Leer
 };
-
 
 std::unordered_map<std::string, Keyword> keyword_map = {
     {"var", Var},
@@ -55,6 +53,8 @@ std::unordered_map<std::string, Keyword> keyword_map = {
     {"caso", Caso},
     {"cambiar", Cambiar},
     {"booleano", Booleano},
+    {"Escribir", Escribir},
+    {"Leer", Leer},
     {"flotante", Flotante},
     {"entero", Entero},
     {"cadena", Cadena},
