@@ -13,7 +13,8 @@ bool esValidoTipo(const std::string &tipo) {
 }
 
 // Constructor
-Analizador::Analizador(const std::vector<Token> &t) : tokens(t), index(0) {}
+Analizador::Analizador(const std::vector<Token> &t)
+    : tokens(t), index(0), errorSintactico(false) {}
 
 ASTNodo *Analizador::parse() {
   ASTNodo *root = new ASTNodo("programa", "", 0, 0);
@@ -27,6 +28,11 @@ ASTNodo *Analizador::parse() {
       // Si la instrucción no es válida, avanza para evitar bucles infinitos
       avanzar();
     }
+  }
+
+  if (errorSintactico) {
+    delete root;
+    return nullptr;
   }
 
   return root;
@@ -45,11 +51,15 @@ void Analizador::avanzar() {
 
 // Reporta un error sintáctico
 void Analizador::reportarError(const std::string &mensaje, int linea, int col) {
+  errorSintactico = true;
   std::cerr << "Error sintactico en linea " << linea << ", col " << col << ": "
             << mensaje << std::endl;
 }
 
 ASTNodo *Analizador::parsePrograma() {
+  if (errorSintactico) {
+    return nullptr;
+  }
   ASTNodo *root = new ASTNodo("programa", "", 0, 0);
 
   while (TokenActual().tipo != "EOF") {
@@ -65,6 +75,10 @@ ASTNodo *Analizador::parsePrograma() {
 }
 
 ASTNodo *Analizador::parseInstruccion() {
+
+  if (errorSintactico) {
+    return nullptr;
+  }
   Token current = TokenActual();
 
   // Ignorar la llave de cierre '}' sin generar error
@@ -103,10 +117,14 @@ ASTNodo *Analizador::parseInstruccion() {
     avanzar(); // Consumir ';'
   }
 
+
   return instruccion;
 }
 
 ASTNodo *Analizador::parseDeclaracion() {
+  if (errorSintactico) {
+    return nullptr;
+  }
   Token current = TokenActual();
 
   // Verificar si el token es una palabra reservada válida
@@ -155,6 +173,9 @@ ASTNodo *Analizador::parseDeclaracion() {
 }
 
 ASTNodo *Analizador::parseAsignacion() {
+  if (errorSintactico) {
+    return nullptr;
+  }
   Token identificador = TokenActual();
 
   // Verificar que el token sea un identificador
@@ -175,6 +196,9 @@ ASTNodo *Analizador::parseAsignacion() {
 
   // Procesar la expresión después del '='
   ASTNodo *expresion = parseExpresion();
+  if (errorSintactico) {
+    return nullptr;
+  }
   if (!expresion) {
     reportarError("Expresion invalida en la asignacion", TokenActual().linea,
                   TokenActual().col);
@@ -190,14 +214,18 @@ ASTNodo *Analizador::parseAsignacion() {
 }
 
 ASTNodo *Analizador::parseExpresion() {
+  if (errorSintactico) {
+    return nullptr;
+  }
   ASTNodo *termino = parseTermino();
 
   while (TokenActual().tipo == "Simbolo" &&
          (TokenActual().lexema == "+" || TokenActual().lexema == "-" ||
-          TokenActual().lexema == "||" || TokenActual().lexema == "&&" ||
-          TokenActual().lexema == "<" || TokenActual().lexema == ">" ||
-          TokenActual().lexema == "<=" || TokenActual().lexema == ">=" ||
-          TokenActual().lexema == "==" || TokenActual().lexema == "!=")) {
+          TokenActual().lexema == "=" || TokenActual().lexema == "||" ||
+          TokenActual().lexema == "&&" || TokenActual().lexema == "<" ||
+          TokenActual().lexema == ">" || TokenActual().lexema == "<=" ||
+          TokenActual().lexema == ">=" || TokenActual().lexema == "==" ||
+          TokenActual().lexema == "!=")) {
 
     Token operador = TokenActual();
     avanzar();
@@ -213,6 +241,9 @@ ASTNodo *Analizador::parseExpresion() {
 }
 
 ASTNodo *Analizador::parseTermino() {
+  if (errorSintactico) {
+    return nullptr;
+  }
   ASTNodo *factor = parseFactor();
 
   while (TokenActual().tipo == "Simbolo" &&
@@ -232,6 +263,9 @@ ASTNodo *Analizador::parseTermino() {
 }
 
 ASTNodo *Analizador::parseFactor() {
+  if (errorSintactico) {
+    return nullptr;
+  }
   Token current = TokenActual();
 
   // Si es un número
@@ -275,6 +309,9 @@ ASTNodo *Analizador::parseFactor() {
 }
 
 ASTNodo *Analizador::parseSi() {
+  if (errorSintactico) {
+    return nullptr;
+  }
   Token current = TokenActual();
 
   // Verificar la palabra reservada 'si'
@@ -379,6 +416,9 @@ ASTNodo *Analizador::parseSi() {
 }
 
 ASTNodo *Analizador::parseMientras() {
+  if (errorSintactico) {
+    return nullptr;
+  }
   Token current = TokenActual();
 
   // Verificar la palabra reservada 'mientras'
@@ -434,13 +474,14 @@ ASTNodo *Analizador::parseMientras() {
       nodoMientras->hijos.push_back(instruccion);
 
       // Consumir el punto y coma ';' después de la instrucción
-      if (TokenActual().lexema == ";") {
-        avanzar(); // Consumir ';'
-      } else {
-        reportarError("Se esperaba ';' despues de la instruccion",
-                      TokenActual().linea, TokenActual().col);
-        return nullptr;
-      }
+      // if (TokenActual().lexema == ";") {
+      //   avanzar(); // Consumir ';'
+      // } else {
+      //   cout<<"aqui"<<endl;
+      //   reportarError("Se esperaba ';' despues de la instruccion",
+      //                 TokenActual().linea, TokenActual().col);
+      //   return nullptr;
+      // }
     } else {
       reportarError("Instruccion invalida dentro del cuerpo de 'mientras'",
                     TokenActual().linea, TokenActual().col);
@@ -460,6 +501,9 @@ ASTNodo *Analizador::parseMientras() {
 }
 
 ASTNodo *Analizador::parseFuncion() {
+  if (errorSintactico) {
+    return nullptr;
+  }
   Token current = TokenActual();
 
   // Verificar la palabra reservada "funcion"
@@ -561,6 +605,9 @@ ASTNodo *Analizador::parseFuncion() {
 }
 
 ASTNodo *Analizador::parseDevolver() {
+  if (errorSintactico) {
+    return nullptr;
+  }
   Token current = TokenActual();
 
   // Verificar la palabra reservada 'devolver'
@@ -595,6 +642,9 @@ ASTNodo *Analizador::parseDevolver() {
 }
 
 ASTNodo *Analizador::parsePara() {
+  if (errorSintactico) {
+    return nullptr;
+  }
   Token current = TokenActual();
 
   // Verificar la palabra reservada 'para'
@@ -607,7 +657,7 @@ ASTNodo *Analizador::parsePara() {
 
   // Verificar el paréntesis de apertura '('
   if (TokenActual().lexema != "(") {
-    reportarError("Se esperaba '(' despues de 'para'", TokenActual().linea,
+    reportarError("Se esperaba '(' después de 'para'", TokenActual().linea,
                   TokenActual().col);
     return nullptr;
   }
@@ -620,22 +670,30 @@ ASTNodo *Analizador::parsePara() {
   } else if (TokenActual().tipo == "id") { // Asignación
     inicializacion = parseAsignacion();
   } else {
-    reportarError("Inicializacion invalida en 'para'", TokenActual().linea,
+    reportarError("Inicialización inválida en 'para'", TokenActual().linea,
                   TokenActual().col);
     return nullptr;
   }
+
+  // Consumir el ';' después de la inicialización
+  if (TokenActual().lexema != ";") {
+    reportarError("Se esperaba ';' después de la inicialización en 'para'",
+                  TokenActual().linea, TokenActual().col);
+    return nullptr;
+  }
+  avanzar(); // Consumir ';'
 
   // Procesar la condición
   ASTNodo *condicion = parseExpresion();
   if (!condicion) {
-    reportarError("Condicion invalida en 'para'", TokenActual().linea,
+    reportarError("Condición inválida en 'para'", TokenActual().linea,
                   TokenActual().col);
     return nullptr;
   }
 
-  // Consumir explícitamente el ';' después de la condición
+  // Consumir el ';' después de la condición
   if (TokenActual().lexema != ";") {
-    reportarError("Se esperaba ';' despues de la condicion en 'para'",
+    reportarError("Se esperaba ';' después de la condición en 'para'",
                   TokenActual().linea, TokenActual().col);
     return nullptr;
   }
@@ -644,14 +702,14 @@ ASTNodo *Analizador::parsePara() {
   // Procesar la actualización
   ASTNodo *actualizacion = parseAsignacion();
   if (!actualizacion) {
-    reportarError("Actualizacion invalida en 'para'", TokenActual().linea,
+    reportarError("Actualización inválida en 'para'", TokenActual().linea,
                   TokenActual().col);
     return nullptr;
   }
 
-  // Verificar paréntesis de cierre ')'
+  // Verificar el paréntesis de cierre ')'
   if (TokenActual().lexema != ")") {
-    reportarError("Se esperaba ')' despues de la actualizacion en 'para'",
+    reportarError("Se esperaba ')' después de la actualización en 'para'",
                   TokenActual().linea, TokenActual().col);
     return nullptr;
   }
@@ -677,13 +735,9 @@ ASTNodo *Analizador::parsePara() {
     if (instruccion) {
       nodoPara->hijos.push_back(instruccion);
     } else {
-      if (TokenActual().lexema == "}") {
-        break; // Fin del bloque, salir del bucle
-      } else {
-        reportarError("Instruccion invalida dentro del cuerpo de 'para'",
-                      TokenActual().linea, TokenActual().col);
-        avanzar(); // Avanzar para evitar bucles infinitos
-      }
+      reportarError("Instrucción inválida dentro del cuerpo de 'para'",
+                    TokenActual().linea, TokenActual().col);
+      avanzar();
     }
   }
 
@@ -699,6 +753,9 @@ ASTNodo *Analizador::parsePara() {
 }
 
 ASTNodo *Analizador::parseLlamadaFuncion() {
+  if (errorSintactico) {
+    return nullptr;
+  }
   Token current = TokenActual();
 
   // Verificar si es una función válida

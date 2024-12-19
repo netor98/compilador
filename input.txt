@@ -2,3 +2,17 @@ Escribir(x);
 Leer(x);
 Sumar(x, y);
 escribir = 0;
+
+
+
+para (i = 0; i < 10; i = i + 1) {
+x = x + i;
+y = y - i;
+}
+
+si (x>2) entonces{
+    mientras (x<10){
+        Escribir(x);
+    }
+}
+

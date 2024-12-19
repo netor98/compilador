@@ -10,7 +10,8 @@ using namespace std;
 class Analizador{
 private:
   std::vector<Token> tokens; // Lista de tokens como entrada
-  int index;                 // Índice del token actual
+  bool errorSintactico;      // Indica si hubo un error
+  int index;  // Índice del token actual
 
   Token TokenActual(); // Devuelve el token actual
   void avanzar();       // Avanza al siguiente token
